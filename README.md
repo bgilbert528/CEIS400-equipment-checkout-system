@@ -12,20 +12,20 @@ Course team project for CEIS400 at DeVry University. A fully functional implemen
 
 ## Team Members:
 
-- Bryan Gilbert - Project Lead
+- Bryan Gilbert — Project Lead
   - bgilbert528@gmail.com
 
-- Dashawn Newton - Requirements and User Experience
+- Dashawn Newton — Requirements and User Experience
   - dashawn.newton@yahoo.com
 
-- Corey Scheffler - Software Solutions Architect
+- Corey Scheffler — Software Solutions Architect
   - c.scheffler988@gmail.com
 
-- Jalonda Cameron - Database Solutions Architect
+- Jalonda Cameron — Database Solutions Architect
   - jalondacameron@aol.com
 
-- Emad Ali - Quality Assurance and Testing
+- Emad Ali — Quality Assurance and Testing
   - eali5@my.devry.edu
 
-- Devoires James - Risk Management
+- Devoires James — Risk Management
   - devoires_james@ymail.com
