@@ -10,11 +10,11 @@ Course team project for CEIS400 at DeVry University. A fully functional implemen
 2. 
 3. 
 
-Team Members:
+## Team Members:
 
-  Bryan Gilbert
-    Project Lead
-    bgilbert528@gmail.com
+- Bryan Gilbert
+  - Project Lead
+  - bgilbert528@gmail.com
 
   Dashawn Newton
     Requirements and User Experience
