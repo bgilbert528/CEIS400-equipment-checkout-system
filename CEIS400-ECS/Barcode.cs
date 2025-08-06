@@ -8,7 +8,7 @@ using ZXing.Common;
 using System.Drawing;
 using System.Drawing.Imaging;
 
-namespace T3ECS
+namespace CEIS400_ECS
 {
     public class Barcode
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace T3ECS
+namespace CEIS400_ECS
 {
     public class BasicTools : ITrackable, IHasBarcode
     {

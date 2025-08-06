@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace T3ECS
+namespace CEIS400_ECS
 {
     public static class PasswordControl
     {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace T3ECS
+namespace CEIS400_ECS
 {
     public class SpecialTool : ITrackable, IHasBarcode
     {

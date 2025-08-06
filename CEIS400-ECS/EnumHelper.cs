@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace T3ECS
+namespace CEIS400_ECS
 {
     public static class EnumHelper
     {
