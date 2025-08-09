@@ -17,6 +17,8 @@ namespace CEIS400_ECS
         protected string _title;
         protected string _passwordHash;
         protected string _passwordSalt;
+        protected Roles _role;
+        protected Roles? _secondRole;
 
         // Constructors
         public Employee()
@@ -31,7 +33,7 @@ namespace CEIS400_ECS
             _passwordSalt = "";
         }
 
-        public Employee(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt)
+        public Employee(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt, Roles role)
         {
             EmpID = empID;
             Name = name;
@@ -41,6 +43,7 @@ namespace CEIS400_ECS
             Title = title;
             PasswordHash = passwordHash;
             PasswordSalt = passwordSalt;
+            Role = role;
         }
 
         // Behaviors
@@ -65,5 +68,7 @@ namespace CEIS400_ECS
         public string Title { get { return _title; } set { _title = value; } }
         public string PasswordHash { get { return _passwordHash; } set { _passwordHash = value; } }
         public string PasswordSalt { get { return _passwordSalt; } set { _passwordSalt = value; } }
+        public Roles Role { get { return _role; } set { _role = value; } }
+        public Roles? SecondRole { get { return _secondRole; } set { _secondRole = value; } }
     }
 }

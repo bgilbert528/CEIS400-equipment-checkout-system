@@ -8,9 +8,11 @@ using System.Web;
 
 namespace CEIS400_ECS
 {
-    public class SpecialTool : ITrackable, IHasBarcode
+    public class SpecialTool : Trackable
     {
         // Attributes
+        public override string Source { get { return SToolID; } set { SToolID = value; } }
+
         protected string _sToolID;
         protected string _name;
         protected string _type;
@@ -23,8 +25,6 @@ namespace CEIS400_ECS
         protected bool _certRequired;
         protected List<string> _included;
         protected BindingList<CheckoutRecord> _checkoutRecords;
-        public string Source => _sToolID;
-        public Barcode Barcode { get; private set; }
 
         // Constructors
         public SpecialTool()
@@ -64,11 +64,28 @@ namespace CEIS400_ECS
         // -- Class specific --
         public bool IsIncluded()
         {
+            // Checks if anything is in the Included list
+            // Included can be for a toolbox that contains many tools
+            // Will need to setup a ToString() method for the Included Items to print to screen or report
+            if (Included.Count > 0)
+            {
+                return true;
+            }
+
+            // If nothing is Included
             return false;
         }
 
         public bool DueForCalibration()
         {
+            // Check if the calibration due date is greater than or equal to today
+            // Return true if it is
+            if (DateTime.Now >= CalDue)
+            {
+                return true;
+            }
+
+            // Return false if it is not
             return false;
         }
 
@@ -78,53 +95,121 @@ namespace CEIS400_ECS
         }
 
         // -- Interface methods --
-        // <-- IHasBarcode methods -->
-        public void GenerateBarcode()
+        public override void GenerateID()
         {
-            Barcode.Generate(SToolID);
+            SToolID = Guid.NewGuid().ToString();
         }
 
-        // <-- ITrackable methods -->
-        public void GenerateID()
+        public override void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer)
         {
-            // generate code
+            // Sets item status to out and adds DateTime to InDate
+            // removes current OutDate value
+            // CheckoutRecords list will hold all timestamps for each transaction
+            InDate = DateTime.Now;
+            Status = InvStatus.In;
+            OutDate = null;
+
+            CheckoutRecord updateRecord = records[index];
+
+            updateRecord.DateIn = Convert.ToDateTime(InDate);
+
+            customer.OutItems.Remove(updateRecord.Source);
         }
 
-        public bool CheckStock()
+        public override void CheckOut(Customer customer)
         {
-            // generate code
-            return true;
+            // Sets item status to out and adds DateTime to OutDate
+            // removes current InDate value
+            // CheckoutRecords list will hold all timestamps for each transaction
+            if (customer == null)
+            {
+                // If not EmpID is entered for checkout
+                throw new ArgumentNullException("Customer required for checkout");
+            }
+
+            // Check it customer is certified for checking this item out
+            if (CertRequired)
+            {
+                // Denied message if they are not certified
+                if (!customer.IsCertified(this))
+                {
+                    MessageBox.Show("Denied", "Not certified for item checkout", MessageBoxButtons.OK);
+                }
+            }
+
+            // Checks for EmpStatus. Makes sure customer has an active account
+            if (customer.Status != EmpStatus.Active)
+            {
+                MessageBox.Show("Not Active", "Account not active. Check out denied", MessageBoxButtons.OK);
+            }
+
+            Status = InvStatus.Out;
+            OutDate = DateTime.Now;
+            InDate = null;
+
+            // Creates the CheckoutRecord for the item and adds the item to customers checkout list
+            CheckoutRecord newRecord = new CheckoutRecord()
+            {
+                RecordID = Guid.NewGuid().ToString(),
+                EmpID = customer.EmpID,
+                DateOut = Convert.ToDateTime(OutDate),
+                DateIn = Convert.ToDateTime(InDate),
+                Condition = Remarks,
+                Source = this
+            };
+
+            CheckoutRecords.Add(newRecord);
+            customer.OutItems.Add(this);
         }
 
-        public void CheckIn()
+        public override bool CheckStock()
         {
-            // generate code
+            // Checking if item is In or Out
+            // If InDate has date it is in Stock
+            if (InDate.HasValue)
+            {
+                return Status == InvStatus.In;
+            }
+
+            // If no InDate, then item is Out of Stock;
+            return Status == InvStatus.Out;
         }
 
-        public void CheckOut()
+        public override bool IsMissing()
         {
-            // generate code
+            // Check for if OutDate has a date and if Equip status is "Out For Service"
+            if (OutDate.HasValue && Status != InvStatus.OutForService)
+            {
+                // If out and not "Out For Service
+                // Calculate the number of days missing
+                // Greater than (2) Days will return Status as Missing and update Status to Missing.
+                double daysLate = (DateTime.Now - OutDate.Value).TotalDays;
+                if (daysLate >= 2)
+                {
+                    Status = InvStatus.Missing;
+                    return Status == InvStatus.Missing;
+                }
+            }
+
+            // Otherwise it could still be out and in use
+            // Return Status as Out
+            return Status == InvStatus.Out;
         }
 
-        public bool IsMissing()
-        {
-            // generate code
-            return false;
-        }
 
         // Properties
         public string SToolID { get { return _sToolID; } set { _sToolID = value; } }
         public string Name { get { return _name; } set { _name = value; } }
         public string Type { get { return _type; } set { _type = value; } }
-        public InvStatus Status { get { return _status; } set {_status = value; } }
-        public DateTime? InDate { get { return _inDate; } set { _inDate = value; } }
-        public DateTime? OutDate { get { return _outDate; } set { _outDate = value; } }
+        public override InvStatus Status { get { return _status; } set { _status = value; } }
+        public override DateTime? InDate { get { return _inDate; } set { _inDate = value; } }
+        public override DateTime? OutDate { get { return _outDate; } set { _outDate = value; } }
         public string Remarks { get { return _remarks; } set { _remarks = value; } }
         public DateTime? CalDate { get { return _calDate; } set { _calDate = value; } }
         public DateTime? CalDue { get { return _calDue; } set { _calDue = value; } }
         public bool CertRequired { get { return _certRequired; } set { _certRequired = value; } }
         public List<string> Included { get { return _included; } set { _included = value; } }
-        public BindingList<CheckoutRecord> CheckoutRecords { get { return _checkoutRecords; } set { _checkoutRecords = value; } }
+        public override BindingList<CheckoutRecord> CheckoutRecords { get { return _checkoutRecords; } set { _checkoutRecords = value; } }
 
     }
 }

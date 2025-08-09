@@ -9,9 +9,14 @@ namespace CEIS400_ECS
     public interface ITrackable
     {
         string Source { get; }
+        InvStatus Status { get; set; }
+        DateTime? InDate { get; set; }
+        DateTime? OutDate { get; set; }
+        Barcode Barcode { get; }
+        BindingList<CheckoutRecord> CheckoutRecords { get; }
         bool CheckStock();
-        void CheckIn();
-        void CheckOut();
+        void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer);
+        void CheckOut(Customer customer);
         bool IsMissing();
         void GenerateID();
     }

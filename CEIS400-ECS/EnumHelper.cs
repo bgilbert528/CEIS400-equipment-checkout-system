@@ -8,6 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+// This class is used to help insert the Enum choices into comboBoxes
+// maintaining data integrity from both front and back ends. Also
+// keeps the code cleaner, modular, and reuseable.
+// These will be called under the Main Form class for the program
+// at Initialization.
+
 namespace CEIS400_ECS
 {
     public static class EnumHelper
