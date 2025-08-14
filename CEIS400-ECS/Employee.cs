@@ -47,15 +47,16 @@ namespace CEIS400_ECS
         }
 
         // Behaviors
+
         public bool Login()
         {
-            // generate code
+            UserSession.Instance.Login(this);
             return true;
         }
 
         public void LogOut()
         {
-            // generate code
+            UserSession.Instance.Logout();
         }
 
 
@@ -70,5 +71,38 @@ namespace CEIS400_ECS
         public string PasswordSalt { get { return _passwordSalt; } set { _passwordSalt = value; } }
         public Roles Role { get { return _role; } set { _role = value; } }
         public Roles? SecondRole { get { return _secondRole; } set { _secondRole = value; } }
+    }
+
+    // This is a nested class for managing user sessions
+    // It ensures that only one instance of an account exists at a time
+    // This is implemented using the Singleton Pattern
+    public sealed class UserSession
+    {
+        private static UserSession _instance;
+        private static readonly object _lock = new object();
+
+        public Employee CurrentUser { get; private set; }
+        private UserSession() { }
+
+        public static UserSession Instance
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _instance ?? new UserSession();
+                }
+            }
+        }
+
+        public void Login(Employee employee)
+        {
+            CurrentUser = employee;
+        }
+
+        public void Logout()
+        {
+            CurrentUser = null;
+        }
     }
 }
