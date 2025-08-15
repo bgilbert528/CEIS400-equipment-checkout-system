@@ -45,11 +45,12 @@ namespace CEIS400_ECS
 
         public void RequestEquip()
         {
-
+            // For future use.
         }
 
         public string AcknowledgeReturn()
         {
+            // For future use, add IMAP/POP service layer that sends acknowledgement emails to Customers once equip checked in
             return "";
         }
 

@@ -13,7 +13,7 @@ namespace CEIS400_ECS
         DateTime? InDate { get; set; }
         DateTime? OutDate { get; set; }
         Barcode Barcode { get; }
-        BindingList<CheckoutRecord> CheckoutRecords { get; }
+        BindingList<CheckoutRecord> CheckoutRecords { get; set; }
         bool CheckStock();
         void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer);
         void CheckOut(Customer customer);

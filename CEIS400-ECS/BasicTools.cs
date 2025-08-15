@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CEIS400_ECS
 {
-    public class BasicTools : ITrackable, IHasBarcode
+    public class BasicTools : Trackable
     {
         // Attributes
         public override string Source { get => ToolID; set => ToolID = value; }
@@ -35,12 +35,13 @@ namespace CEIS400_ECS
             Barcode = new Barcode();
         }
 
-        public BasicTools(string toolID, string name, DateTime? inDate, DateTime? outDate, List<string> included, string remarks, BindingList<CheckoutRecord> checkoutRecords)
+        public BasicTools(string toolID, string name, DateTime? inDate, DateTime? outDate, InvStatus status, List<string> included, string remarks, BindingList<CheckoutRecord> checkoutRecords)
         {
             ToolID = toolID;
             Name = name;
             InDate = inDate;
             OutDate = outDate;
+            Status = status;
             Included = included;
             Remarks = remarks;
             CheckoutRecords = checkoutRecords;
@@ -73,6 +74,7 @@ namespace CEIS400_ECS
 
         public override void CheckOut(Customer customer)
         {
+            var isInStock = CheckStock();
             // Sets item status to out and adds DateTime to OutDate
             // removes current InDate value
             // CheckoutRecords list will hold all timestamps for each transaction
@@ -88,23 +90,27 @@ namespace CEIS400_ECS
                 MessageBox.Show("Not Active", "Account not active. Check out denied", MessageBoxButtons.OK);
             }
 
-            Status = InvStatus.Out;
-            OutDate = DateTime.Now;
-            InDate = null;
-
-            // Creates the CheckoutRecord for the item and adds the item to customers checkout list
-            CheckoutRecord newRecord = new CheckoutRecord()
+            if (isInStock == Convert.ToBoolean(InvStatus.In))
             {
-                RecordID = Guid.NewGuid().ToString(),
-                EmpID = customer.EmpID,
-                DateOut = Convert.ToDateTime(OutDate),
-                DateIn = Convert.ToDateTime(InDate),
-                Condition = Remarks,
-                Source = this
-            };
+                Status = InvStatus.Out;
+                OutDate = DateTime.Now;
+                InDate = null;
 
-            CheckoutRecords.Add(newRecord);
-            customer.OutItems.Add(this);
+                // Creates the CheckoutRecord for the item and adds the item to customers checkout list
+                CheckoutRecord newRecord = new CheckoutRecord()
+                {
+                    RecordID = Guid.NewGuid().ToString(),
+                    EmpID = customer.EmpID,
+                    DateOut = Convert.ToDateTime(OutDate),
+                    DateIn = Convert.ToDateTime(InDate),
+                    Condition = Remarks,
+                    Source = this
+                };
+
+                CheckoutRecords.Add(newRecord);
+                customer.OutItems.Add(this);
+            }
+
         }
 
         public override bool CheckStock()
@@ -129,7 +135,7 @@ namespace CEIS400_ECS
                 // Calculate the number of days missing
                 // Greater than (2) Days will return Status as Missing and update Status to Missing.
                 double daysLate = (DateTime.Now - OutDate.Value).TotalDays;
-                if (daysLate >= 2)
+                if (daysLate >= CONST.DAYS_LATE_FLAG)
                 {
                     Status = InvStatus.Missing;
                     return Status == InvStatus.Missing;
