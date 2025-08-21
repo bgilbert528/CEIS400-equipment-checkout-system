@@ -115,6 +115,7 @@
             generateReportsButton.TabIndex = 4;
             generateReportsButton.Text = "Generate Reports";
             generateReportsButton.UseVisualStyleBackColor = true;
+            generateReportsButton.Click += generateReportsButton_Click;
             // 
             // trackInventoryButton
             // 
@@ -124,6 +125,7 @@
             trackInventoryButton.TabIndex = 3;
             trackInventoryButton.Text = "Track Inventory";
             trackInventoryButton.UseVisualStyleBackColor = true;
+            trackInventoryButton.Click += trackInventoryButton_Click;
             // 
             // navigationPanelLabel
             // 
@@ -142,6 +144,7 @@
             updateInventoryButton.TabIndex = 2;
             updateInventoryButton.Text = "Update Inventory";
             updateInventoryButton.UseVisualStyleBackColor = true;
+            updateInventoryButton.Click += updateInventoryButton_Click;
             // 
             // checkInButton
             // 
@@ -151,6 +154,7 @@
             checkInButton.TabIndex = 1;
             checkInButton.Text = "Check In";
             checkInButton.UseVisualStyleBackColor = true;
+            checkInButton.Click += checkInButton_Click;
             // 
             // checkOutButton
             // 
@@ -160,6 +164,7 @@
             checkOutButton.TabIndex = 0;
             checkOutButton.Text = "Check Out";
             checkOutButton.UseVisualStyleBackColor = true;
+            checkOutButton.Click += checkOutButton_Click;
             // 
             // availableListBoxLabel
             // 
