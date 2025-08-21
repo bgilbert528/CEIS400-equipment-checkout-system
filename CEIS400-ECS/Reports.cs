@@ -13,17 +13,17 @@ namespace CEIS400_ECS
 {
     public class Reports
     {
-        private string _connection = "Add SQL Server/DB here";
+        private string _connection = CONST.DB_CONN;
 
         private List<ITrackable> GetEquipFromDB()
         {
             // Needs SQL Commands to be added
             List<ITrackable> equipment = new List<ITrackable>();
-            using (SqlConnection connection = new SqlConnection(_connection))
+            using (MySqlConnection connection = new MySqlConnection(_connection))
             {
                 connection.Open();
-                SqlCommand cmd = new SqlCommand("Add SQl Query herey"); // <--- Needs to completed with SQL commands
-                SqlDataReader reader = cmd.ExecuteReader();
+                MySqlCommand cmd = new MySqlCommand(CONST.GET_EQUIP_FROM_DB);
+                MySqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
                     string type = reader["Source"].ToString();
@@ -35,13 +35,13 @@ namespace CEIS400_ECS
                         case "BasicTools":
                             equipmentItem = new BasicTools
                             {
-                                ToolID = reader.GetString(0), // <--- These columns numbers can be replaced with the actual column names in DB
-                                Name = reader.GetString(1),
-                                InDate = reader.GetDateTime(2),
-                                OutDate = reader.GetDateTime(3),
-                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("Status")),
-                                Included = reader.GetString(4).Split(',').ToList(),
-                                Remarks = reader.GetString(5),
+                                ToolID = reader.GetString("BasicToolID"), // <--- These columns numbers can be replaced with the actual column names in DB
+                                Name = reader.GetString("BasicToolName"),
+                                InDate = reader.GetDateTime("BasicToolInDate"),
+                                OutDate = reader.GetDateTime("BasicToolOutDate"),
+                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("BasicToolStatus")),
+                                Included = reader.GetString("BasicToolIncluded").Split(',').ToList(),
+                                Remarks = reader.GetString("BasicToolRemarks"),
                                 CheckoutRecords = JsonSerializer.Deserialize<BindingList<CheckoutRecord>>(reader.GetString(reader.GetOrdinal("CheckoutRecords")))
                             };
                             break;
@@ -50,17 +50,17 @@ namespace CEIS400_ECS
                         case "SpecialTool":
                             equipmentItem = new SpecialTool
                             {
-                                SToolID = reader.GetString(0),
-                                Name = reader.GetString(1),
-                                Type = reader.GetString(2),
-                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("Status")),
-                                InDate = reader.GetDateTime(4),
-                                OutDate = reader.GetDateTime(5),
-                                Remarks = reader.GetString(6),
-                                CalDate = reader.GetDateTime(7),
-                                CalDue = reader.GetDateTime(8),
-                                CertRequired = reader.GetBoolean(9),
-                                Included = reader.GetString(10).Split(',').ToList(),
+                                SToolID = reader.GetString("SpecialToolID"),
+                                Name = reader.GetString("SpecialToolName"),
+                                Type = reader.GetString("SpecialToolType"),
+                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("SpecialToolStatus")),
+                                InDate = reader.GetDateTime("SpecialToolInDate"),
+                                OutDate = reader.GetDateTime("SpecialToolOutDate"),
+                                Remarks = reader.GetString("SpecialToolRemarks"),
+                                CalDate = reader.GetDateTime("SpecialToolCalDate"),
+                                CalDue = reader.GetDateTime("SpecialToolCalDue"),
+                                CertRequired = reader.GetBoolean("SpecialToolCertsRequired"),
+                                Included = reader.GetString("SpeicalToolIncluded").Split(',').ToList(),
                                 CheckoutRecords = JsonSerializer.Deserialize<BindingList<CheckoutRecord>>(reader.GetString(reader.GetOrdinal("CheckoutRecords")))
                             };
                             break;
@@ -69,16 +69,16 @@ namespace CEIS400_ECS
                         case "Vehicle":
                             equipmentItem = new Vehicle
                             {
-                                VehicleID = reader.GetString(0),
-                                Make = reader.GetString(1),
-                                Model = reader.GetString(2),
-                                Year = reader.GetInt32(3),
-                                SerialNum = reader.GetString(4),
-                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("Status")),
-                                InDate = reader.GetDateTime(6),
-                                OutDate = reader.GetDateTime(7),
-                                Remarks = reader.GetString(8),
-                                CertRequired = reader.GetBoolean(9),
+                                VehicleID = reader.GetString("VehicleID"),
+                                Make = reader.GetString("VehicleMake"),
+                                Model = reader.GetString("VehicleModel"),
+                                Year = reader.GetInt32("VehicleYear"),
+                                SerialNum = reader.GetString("SerialNum"),
+                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("VehicleStatus")),
+                                InDate = reader.GetDateTime("VehicleInDate"),
+                                OutDate = reader.GetDateTime("VehicleOutDate"),
+                                Remarks = reader.GetString("VehicleRemarks"),
+                                CertRequired = reader.GetBoolean("VehicleCertRequired"),
                                 CheckoutRecords = JsonSerializer.Deserialize<BindingList<CheckoutRecord>>(reader.GetString(reader.GetOrdinal("CheckoutRecords")))
                             };
                             break;
@@ -92,7 +92,7 @@ namespace CEIS400_ECS
                 }
 
                 return equipment;
-            }            
+            }
         }
 
         // Methods for generating reports

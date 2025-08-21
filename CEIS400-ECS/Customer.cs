@@ -10,11 +10,17 @@ namespace CEIS400_ECS
     {
         private List<ITrackable> _certs;
         private List<ITrackable> _outItems;
+
         public Customer(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt, List<ITrackable> certs, List<ITrackable> outItems)
             : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Customer)
         {
             Certs = certs ?? new List<ITrackable>();
             OutItems = outItems ?? new List<ITrackable>();
+        }
+
+        public Customer()
+        {
+
         }
 
         public string ViewCerts()

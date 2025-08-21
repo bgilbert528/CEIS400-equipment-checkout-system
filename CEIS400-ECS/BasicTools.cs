@@ -110,7 +110,7 @@ namespace CEIS400_ECS
                 CheckoutRecords.Add(newRecord);
                 customer.OutItems.Add(this);
             }
-
+            
         }
 
         public override bool CheckStock()
@@ -167,7 +167,7 @@ namespace CEIS400_ECS
             return "temp text";
         }
 
-
+        
 
         // properties
         public string ToolID { get { return _toolID; } set { _toolID = value; } }
