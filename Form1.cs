@@ -21,11 +21,7 @@ namespace CEIS400_ECS
 
         private void button1_Click(object sender, EventArgs e)
         {
-            // Search the database for the given equipment's ID
-            string equipID = textBox.Text;
-            DatabaseAccess dbAccess = new DatabaseAccess("test"); // not sure what to pass in here so just "test" and "dbAccess" for names - Bryan
-            DataTable dTable = dbAccess.Query($"SELECT * FROM Equipment WHERE ID = {equipID};");
-            Console.WriteLine(dTable);
+
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
@@ -34,6 +30,51 @@ namespace CEIS400_ECS
         }
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkOutButton_Click(object sender, EventArgs e)
+        {
+            // Lookup the tool object in SQL with equipID from textbox (assuming all tools stored in the same database)
+            Trackable source;
+
+            // Lookup the checkoutRecord object in SQL with equipID from textbox
+            CheckoutRecord record; // <-- Needs SQL query
+
+            // Get associated customer object
+            // string record.EmpID; <-- Needs SQL query
+            Customer customer;
+
+            // deptstaff.CheckOutEquip(source, customer);
+        }
+
+        private void checkInButton_Click(object sender, EventArgs e)
+        {
+            // Lookup the tool object in SQL with equipID from textbox (assuming all tools stored in the same database)
+            Trackable source;
+
+            // Lookup the checkoutRecord object in SQL with equipID from textbox
+            CheckoutRecord record; // <-- Needs SQL query
+
+            // Get associated object
+            // record.EmpID; <-- Needs SQL query
+            Customer customer;
+
+            // deptstaff.CheckInEquip(source, recordID, customer);
+        }
+
+        private void updateInventoryButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void trackInventoryButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void generateReportsButton_Click(object sender, EventArgs e)
         {
 
         }

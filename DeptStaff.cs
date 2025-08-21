@@ -24,6 +24,7 @@ namespace CEIS400_ECS
                 recordToClose = records.FirstOrDefault(r => r.RecordID == recordID);
                 int index = source.CheckoutRecords.IndexOf(recordToClose);
                 source.CheckIn(ref records, index, customer);
+                MessageBox.Show("Success", "Check in successful.", MessageBoxButtons.OK);
             }
             // Add that equip back into the system
         }
@@ -53,6 +54,7 @@ namespace CEIS400_ECS
 
                 // If Everything is good, then check out
                 source.CheckOut(customer);
+                MessageBox.Show("Success", "Check out successful.", MessageBoxButtons.OK);
             }
         }
 
