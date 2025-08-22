@@ -6,9 +6,9 @@ Course team project for CEIS400 at DeVry University. A fully functional implemen
 
 ## How to install this project
 
-1. 
-2. 
-3. 
+1. Click the '<> Code' button. Download a ZIP file with the repository's files included.
+2. Be sure you have Visual Studio 2022 or later installed. Extract the files to the default Visual Studio location C:\Users\<YourUsername>\source\repos .
+3. Open the project in Visual Studio and run.
 
 ## Team Members:
 
