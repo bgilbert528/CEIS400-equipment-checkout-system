@@ -12,7 +12,7 @@ namespace CEIS400_ECS
         private List<ITrackable> _outItems;
 
         public Customer(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt, List<ITrackable> certs, List<ITrackable> outItems)
-            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Customer)
+            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Customer, Roles.None)
         {
             Certs = certs ?? new List<ITrackable>();
             OutItems = outItems ?? new List<ITrackable>();
@@ -20,7 +20,7 @@ namespace CEIS400_ECS
 
         public Customer()
         {
-
+            // Constructor needed for DB connection to link data.
         }
 
         public string ViewCerts()

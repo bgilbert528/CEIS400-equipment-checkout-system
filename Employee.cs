@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Org.BouncyCastle.Crypto.Paddings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,11 +30,11 @@ namespace CEIS400_ECS
             _phone = "";
             _status = EmpStatus.Active;
             _title = "";
-            _passwordHash = Convert.ToBase64String(new byte[0]);
-            _passwordSalt = "";
+            _passwordHash = null;
+            _passwordSalt = null;
         }
 
-        public Employee(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt, Roles role)
+        public Employee(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt, Roles role, Roles secondRole)
         {
             EmpID = empID;
             Name = name;
@@ -44,6 +45,7 @@ namespace CEIS400_ECS
             PasswordHash = passwordHash;
             PasswordSalt = passwordSalt;
             Role = role;
+            SecondRole = secondRole;
         }
 
         // Behaviors
@@ -58,7 +60,6 @@ namespace CEIS400_ECS
         {
             UserSession.Instance.Logout();
         }
-
 
         // Properties
         public string EmpID { get { return _empID; } set { _empID = value; } }
@@ -90,7 +91,12 @@ namespace CEIS400_ECS
             {
                 lock (_lock)
                 {
-                    return _instance ?? new UserSession();
+                    if (_instance == null)
+                    {
+                        _instance = new UserSession();
+                    }
+
+                    return _instance;
                 }
             }
         }

@@ -1,123 +1,88 @@
-﻿﻿using System;
+﻿using MySql.Data.MySqlClient;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace CEIS400_ECS
 {
     public class Reports
     {
-        private string _connection = CONST.DB_CONN;
+        private static string _connection = CONST.DB_CONN;
 
-        private List<ITrackable> GetEquipFromDB()
-        {
-            // Needs SQL Commands to be added
-            List<ITrackable> equipment = new List<ITrackable>();
-            using (MySqlConnection connection = new MySqlConnection(_connection))
-            {
-                connection.Open();
-                MySqlCommand cmd = new MySqlCommand(CONST.GET_EQUIP_FROM_DB);
-                MySqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    string type = reader["Source"].ToString();
-                    ITrackable equipmentItem;
-
-                    switch (type)
-                    {
-                        // BasicTools
-                        case "BasicTools":
-                            equipmentItem = new BasicTools
-                            {
-                                ToolID = reader.GetString("BasicToolID"), // <--- These columns numbers can be replaced with the actual column names in DB
-                                Name = reader.GetString("BasicToolName"),
-                                InDate = reader.GetDateTime("BasicToolInDate"),
-                                OutDate = reader.GetDateTime("BasicToolOutDate"),
-                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("BasicToolStatus")),
-                                Included = reader.GetString("BasicToolIncluded").Split(',').ToList(),
-                                Remarks = reader.GetString("BasicToolRemarks"),
-                                CheckoutRecords = JsonSerializer.Deserialize<BindingList<CheckoutRecord>>(reader.GetString(reader.GetOrdinal("CheckoutRecords")))
-                            };
-                            break;
-
-                        // Special Tools
-                        case "SpecialTool":
-                            equipmentItem = new SpecialTool
-                            {
-                                SToolID = reader.GetString("SpecialToolID"),
-                                Name = reader.GetString("SpecialToolName"),
-                                Type = reader.GetString("SpecialToolType"),
-                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("SpecialToolStatus")),
-                                InDate = reader.GetDateTime("SpecialToolInDate"),
-                                OutDate = reader.GetDateTime("SpecialToolOutDate"),
-                                Remarks = reader.GetString("SpecialToolRemarks"),
-                                CalDate = reader.GetDateTime("SpecialToolCalDate"),
-                                CalDue = reader.GetDateTime("SpecialToolCalDue"),
-                                CertRequired = reader.GetBoolean("SpecialToolCertsRequired"),
-                                Included = reader.GetString("SpeicalToolIncluded").Split(',').ToList(),
-                                CheckoutRecords = JsonSerializer.Deserialize<BindingList<CheckoutRecord>>(reader.GetString(reader.GetOrdinal("CheckoutRecords")))
-                            };
-                            break;
-
-                        // Vehicle
-                        case "Vehicle":
-                            equipmentItem = new Vehicle
-                            {
-                                VehicleID = reader.GetString("VehicleID"),
-                                Make = reader.GetString("VehicleMake"),
-                                Model = reader.GetString("VehicleModel"),
-                                Year = reader.GetInt32("VehicleYear"),
-                                SerialNum = reader.GetString("SerialNum"),
-                                Status = (InvStatus)reader.GetValue(reader.GetOrdinal("VehicleStatus")),
-                                InDate = reader.GetDateTime("VehicleInDate"),
-                                OutDate = reader.GetDateTime("VehicleOutDate"),
-                                Remarks = reader.GetString("VehicleRemarks"),
-                                CertRequired = reader.GetBoolean("VehicleCertRequired"),
-                                CheckoutRecords = JsonSerializer.Deserialize<BindingList<CheckoutRecord>>(reader.GetString(reader.GetOrdinal("CheckoutRecords")))
-                            };
-                            break;
-
-                        // Default
-                        default:
-                            continue;
-                    }
-
-                    equipment.Add(equipmentItem);
-                }
-
-                return equipment;
-            }
-        }
 
         // Methods for generating reports
         // These can be modified or other report methods can be added
-        public List<ITrackable> GetOverDueItems()
+        public static string GetOverdueItems()
         {
-            var equip = GetEquipFromDB();
-            return equip.Where(e => (DateTime.Now - e.OutDate.Value).TotalDays >= CONST.DAYS_LATE_FLAG).ToList();
+            string sql = $@"
+        SELECT bt.ToolID AS ID, bt.Name, bt.Included, bt.Remarks, bt.InDate, bt.OutDate, bt.Status,
+               DATEDIFF(NOW(), bt.OutDate) AS DaysOut
+        FROM basictools bt
+        WHERE bt.Status = 'Out' AND DATEDIFF(NOW(), bt.OutDate) >= {CONST.DAYS_LATE_FLAG}
+            UNION ALL
+        SELECT st.SToolID AS ID, st.Name, st.Included, st.Remarks, st.InDate, st.OutDate, st.Status,
+               DATEDIFF(NOW(), st.OutDate) AS DaysOut
+        FROM specialtools st
+        WHERE st.Status = 'Out' AND DATEDIFF(NOW(), st.OutDate) >= {CONST.DAYS_LATE_FLAG}
+            UNION ALL
+        SELECT v.VehicleID AS ID, v.Make AS Name, v.Model AS Included, v.Remarks, v.InDate, v.OutDate, v.Status,
+               DATEDIFF(NOW(), v.OutDate) AS DaysOut
+        FROM vehicles v
+        WHERE v.Status = 'Out' AND DATEDIFF(NOW(), v.OutDate) >= {CONST.DAYS_LATE_FLAG}
+            ;" ;
+
+            return sql;
         }
 
-        public List<ITrackable> GetMissingItems()
+        public static string GetMissingItems()
         {
-            var equip = GetEquipFromDB();
-            return equip.Where(e => e.Status == InvStatus.Missing).ToList();
+            string sql = @"
+        SELECT bt.ToolID AS ID, bt.Name, bt.OutDate, bt.Status
+        FROM basictools bt
+        WHERE bt.Status = 'Missing'
+        UNION ALL
+        SELECT st.SToolID AS ID, st.Name, st.OutDate, st.Status
+        FROM specialtools st
+        WHERE st.Status = 'Missing'
+        UNION ALL
+        SELECT v.VehicleID AS ID, v.Make AS Name, v.OutDate, v.Status
+        FROM vehicles v
+        WHERE v.Status = 'Missing';";
+            return sql;
         }
 
-        public List<ITrackable> GetOutForServiceItems()
+        public static string GetOutForServiceItems()
         {
-            var equip = GetEquipFromDB();
-            return equip.Where(e => e.Status == InvStatus.OutForService).ToList();
+            string sql = @"SELECT bt.Name, bt.Included, bt.Remarks, bt.InDate, bt.OutDate, bt.Status
+        FROM basictools bt
+        WHERE bt.Status = 'OutForService'
+        UNION ALL
+        SELECT st.Name, st.Included, st.Remarks, st.InDate, st.OutDate, st.Status
+        FROM specialtools st
+        WHERE st.Status = 'OutForService'
+        UNION ALL
+        SELECT v.Make AS Name, v.Model AS Included, v.Remarks, v.InDate, v.OutDate, v.Status
+        FROM vehicles v
+        WHERE v.Status = 'OutForService';";
+            return sql;
         }
 
-        public List<SpecialTool> GetCalDueItems()
+        public static string GetCalDueItems()
         {
-            return GetEquipFromDB().OfType<SpecialTool>().Where(st => st.DueForCalibration() == true).ToList();
+            string sql = @"
+        SELECT SToolID AS ID, Name, Type, Remarks, CalDate, CalDue, Included, CertRequired, InDate, OutDate, Status
+        FROM specialtools
+        WHERE CalDue <= NOW();";
+            return sql;
         }
     }
 }

@@ -9,6 +9,7 @@ namespace CEIS400_ECS
 {
     public abstract class Trackable : ITrackable, IHasBarcode
     {
+        public string SourceID { get; set; }
         public abstract string Source { get; set; }
         public Barcode Barcode { get; protected set; } = new Barcode();
         public virtual InvStatus Status { get; set; } = InvStatus.In;
@@ -16,9 +17,17 @@ namespace CEIS400_ECS
         public abstract DateTime? OutDate { get; set; }
         public virtual BindingList<CheckoutRecord> CheckoutRecords { get; set; } = new BindingList<CheckoutRecord>();
 
-        public virtual void GenerateBarcode() => Barcode.Generate(Source);
+        public virtual void GenerateBarcode()
+        {
+            Barcode = Barcode.Generate(this.Source);
+        }
 
-        public virtual void GenerateID() => Source = Guid.NewGuid().ToString();
+        public virtual string GenerateID()
+        {
+            SourceID = Guid.NewGuid().ToString();
+            Source = SourceID;
+            return Source;
+        }
 
         public virtual bool CheckStock()
         {
@@ -41,7 +50,7 @@ namespace CEIS400_ECS
             OutDate = DateTime.Now;
         }
 
-        public virtual void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer)
+        public virtual void CheckIn(CheckoutRecord record, Customer customer)
         {
             if (Status != InvStatus.Out)
             {
@@ -50,6 +59,14 @@ namespace CEIS400_ECS
 
             Status = InvStatus.In;
             InDate = DateTime.Now;
+        }
+
+        public void ReLinkCheckoutRecords()
+        {
+            foreach (var record in CheckoutRecords)
+            {
+                record.Source = this;
+            }
         }
     }
 }
