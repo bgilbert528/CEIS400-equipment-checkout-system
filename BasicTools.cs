@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CEIS400_ECS
 {
@@ -49,14 +50,15 @@ namespace CEIS400_ECS
 
         // behaviors
 
-        public override void GenerateID()
+        public override string GenerateID()
         {
             // Generate Unique ID for DB
             // ID Bindings equip to checkoutRecords
-            ToolID = Guid.NewGuid().ToString();
+            this.ToolID = Guid.NewGuid().ToString();
+            return this.ToolID;
         }
 
-        public override void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer)
+        public override void CheckIn(CheckoutRecord record, Customer customer)
         {
             // Sets item status to out and adds DateTime to InDate
             // removes current OutDate value
@@ -65,7 +67,7 @@ namespace CEIS400_ECS
             Status = InvStatus.In;
             OutDate = null;
 
-            CheckoutRecord updateRecord = records[index];
+            CheckoutRecord updateRecord = record;
 
             updateRecord.DateIn = Convert.ToDateTime(InDate);
 
@@ -74,43 +76,43 @@ namespace CEIS400_ECS
 
         public override void CheckOut(Customer customer)
         {
-            var isInStock = CheckStock();
-            // Sets item status to out and adds DateTime to OutDate
-            // removes current InDate value
-            // CheckoutRecords list will hold all timestamps for each transaction
             if (customer == null)
-            {
-                // If not EmpID is entered for checkout
                 throw new ArgumentNullException("Customer required for checkout");
-            }
 
-            // Checks for EmpStatus. Makes sure customer has an active account
+            // Ensure customer is active
             if (customer.Status != EmpStatus.Active)
             {
                 MessageBox.Show("Not Active", "Account not active. Check out denied", MessageBoxButtons.OK);
+                return;
             }
 
-            if (isInStock == Convert.ToBoolean(InvStatus.In))
+            // Ensure item is in stock (status is In)
+            if (Status != InvStatus.In)
             {
-                Status = InvStatus.Out;
-                OutDate = DateTime.Now;
-                InDate = null;
-
-                // Creates the CheckoutRecord for the item and adds the item to customers checkout list
-                CheckoutRecord newRecord = new CheckoutRecord()
-                {
-                    RecordID = Guid.NewGuid().ToString(),
-                    EmpID = customer.EmpID,
-                    DateOut = Convert.ToDateTime(OutDate),
-                    DateIn = Convert.ToDateTime(InDate),
-                    Condition = Remarks,
-                    Source = this
-                };
-
-                CheckoutRecords.Add(newRecord);
-                customer.OutItems.Add(this);
+                MessageBox.Show("Unavailable", "Item is already checked out.", MessageBoxButtons.OK);
+                return;
             }
 
+            // Set item as checked out
+            Status = InvStatus.Out;
+            OutDate = DateTime.Now;
+            InDate = null;
+
+            // Create the CheckoutRecord
+            CheckoutRecord newRecord = new CheckoutRecord()
+            {
+                RecordID = Guid.NewGuid().ToString(),
+                EmpID = customer.EmpID,
+                DateOut = OutDate.Value,  // safe, since we just set it
+                DateIn = null,            // item is still out
+                Condition = Remarks,
+                Source = this
+            };
+
+            CheckoutRecords.Add(newRecord);
+
+            // Add this item to customer's "checked-out items" list
+            customer.OutItems.Add(this);
         }
 
         public override bool CheckStock()
@@ -153,21 +155,14 @@ namespace CEIS400_ECS
             // Checks if anything is in the Included list
             // Included can be for a toolbox that contains many tools
             // Will need to setup a ToString() method for the Included Items to print to screen or report
-            if (Included.Count > 0)
-            {
-                return true;
-            }
-
-            // If nothing is Included
-            return false;
+            // If nothing is Included return false
+            return Included != null && Included.Count > 0;
         }
 
         public override string ToString()
         {
-            return "temp text";
+            return $"{Name}";
         }
-
-
 
         // properties
         public string ToolID { get { return _toolID; } set { _toolID = value; } }

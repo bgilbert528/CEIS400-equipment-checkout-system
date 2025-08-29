@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Windows.Forms;
 
 namespace CEIS400_ECS
 {
@@ -89,18 +90,14 @@ namespace CEIS400_ECS
             return false;
         }
 
-        public override string ToString()
-        {
-            return "temp text";
-        }
-
         // -- Interface methods --
-        public override void GenerateID()
+        public override string GenerateID()
         {
             SToolID = Guid.NewGuid().ToString();
+            return SToolID;
         }
 
-        public override void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer)
+        public override void CheckIn(CheckoutRecord record, Customer customer)
         {
             // Sets item status to out and adds DateTime to InDate
             // removes current OutDate value
@@ -109,7 +106,7 @@ namespace CEIS400_ECS
             Status = InvStatus.In;
             OutDate = null;
 
-            CheckoutRecord updateRecord = records[index];
+            CheckoutRecord updateRecord = record;
 
             updateRecord.DateIn = Convert.ToDateTime(InDate);
 
@@ -194,6 +191,11 @@ namespace CEIS400_ECS
             // Otherwise it could still be out and in use
             // Return Status as Out
             return Status == InvStatus.Out;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}";
         }
 
 

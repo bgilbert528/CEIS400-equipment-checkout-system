@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CEIS400_ECS
 {
     public class Supervisor : Employee
     {
         public Supervisor(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt)
-            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Supervisor)
+            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Supervisor, Roles.None)
         {
-
+            
         }
 
-        private void IsSupervisor()
+        private void IsSupervisor() // Make sure logged in user is supervisor
         {
             if (Role != Roles.Supervisor)
             {
@@ -22,55 +24,105 @@ namespace CEIS400_ECS
             }
         }
 
-        public string GenerateReports(Reports reportType)
+        public string GenerateReports(ReportType reportType) // Supervisor generates reports
         {
-            // For the various reports from the report class
-            var type = reportType.ToString();
-            try
+            IsSupervisor();
+
+            string sql = string.Empty;
+
+            switch (reportType) // Report type enum links to SQL queries in Reports class
             {
-                switch (type)
+                case ReportType.Missing:
+                    sql = Reports.GetMissingItems();
+                    break;
+
+                case ReportType.OutForService:
+                    sql = Reports.GetOutForServiceItems();
+                    break;
+
+                case ReportType.Overdue:
+                    sql = Reports.GetOverdueItems();
+                    break;
+
+                case ReportType.DueCal:
+                    sql = Reports.GetCalDueItems();
+                    break;
+
+                default:
+                    throw new Exception("Unknown report type");
+            }
+
+            var dt = DatabaseAccess.RunQuery(sql); // Run the Query
+
+            var result = FormatDataTable(dt); // Build the data table
+
+            return result;
+        }
+
+        private string FormatDataTable(DataTable dt)
+        {
+            if (dt == null || dt.Rows.Count == 0)
+                return "No records found.";
+
+            int colCount = dt.Columns.Count;
+            int[] colWidths = new int[colCount];
+
+            // Calculate max width for each column (including header)
+            for (int i = 0; i < colCount; i++)
+            {
+                int maxWidth = dt.Columns[i].ColumnName.Length;
+                foreach (DataRow row in dt.Rows)
                 {
-                    case "Missing":
-                        foreach (var item in reportType.GetMissingItems())
-                        {
-                            string totalDays = Convert.ToString((DateTime.Now - item.OutDate.Value).TotalDays);
-                            return $"{item.Source} | {item.OutDate} | {totalDays} | {item.CheckoutRecords.LastOrDefault().EmpID}";
-                        }
-                        break;
+                    object val = row[i];
+                    string str;
+                    if (val == DBNull.Value || val == null)
+                        str = "NULL";
+                    else if (val is DateTime dtVal)
+                        str = dtVal.ToString("MM/dd/yyyy");
+                    else
+                        str = val.ToString();
 
-                    case "OutForService":
-                        foreach (var item in reportType.GetOutForServiceItems())
-                        {
-                            string totalDays = Convert.ToString((DateTime.Now - item.OutDate.Value).TotalDays);
-                            return $"{item.Source} | {item.OutDate} | {totalDays}";
-                        }
-                        break;
-
-                    case "OverDue":
-                        foreach (var item in reportType.GetOverDueItems())
-                        {
-                            string totalDays = Convert.ToString((DateTime.Now - item.OutDate.Value).TotalDays);
-                            return $"{item.Source} | {item.OutDate} | {totalDays} | {item.CheckoutRecords.LastOrDefault().EmpID}";
-                        }
-                        break;
-
-                    case "CalDue":
-                        foreach (var item in reportType.GetCalDueItems())
-                        {
-                            return $"{item.Source} | {item.CalDate} | {item.CalDue}";
-                        }
-                        break;
-
-                    default:
-                        break;
+                    if (str.Length > maxWidth)
+                        maxWidth = str.Length;
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Unable to generate report", ex);
+                colWidths[i] = maxWidth + 2; // Add padding
             }
 
-            return string.Empty;
+            var sb = new StringBuilder();
+
+            // Header row
+            sb.Append("|");
+            for (int i = 0; i < colCount; i++)
+                sb.Append(" " + dt.Columns[i].ColumnName.PadRight(colWidths[i] - 1) + "|");
+            sb.AppendLine();
+
+            // Separator row
+            sb.Append("|");
+            for (int i = 0; i < colCount; i++)
+                sb.Append(new string('-', colWidths[i]) + "|");
+            sb.AppendLine();
+
+            // Data rows
+            foreach (DataRow row in dt.Rows)
+            {
+                sb.Append("|");
+                for (int i = 0; i < colCount; i++)
+                {
+                    object val = row[i];
+                    string str;
+                    if (val == DBNull.Value || val == null)
+                        str = "NULL";
+                    else if (val is DateTime dtVal)
+                        str = dtVal.ToString("MM/dd/yyyy");
+                    else
+                        str = val.ToString();
+
+                    sb.Append(" " + str.PadRight(colWidths[i] - 1) + "|");
+                }
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
         }
 
         public void PlaceHold(Employee employee)

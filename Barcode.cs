@@ -1,36 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ZXing;
+﻿using ZXing;
 using ZXing.Common;
 using System.Drawing;
-using System.Drawing.Imaging;
+using CEIS400_ECS;
 
-namespace CEIS400_ECS
+public class Barcode
 {
-    public class Barcode
+    public string Code { get; private set; }
+    public Bitmap BarcodeImage { get; private set; }
+
+    public static Barcode Generate(string inputData)
     {
-        public string Code { get; private set; }
-        public Bitmap BarcodeImage { get; private set; }
-        public Image Generate(string inputData)
+        string stripped = inputData.Substring(0, 10);
+        var instance = new Barcode
         {
-            Code = $"TID-{inputData}";
+            Code = $"{inputData}"
+        };
 
-            var write = new BarcodeWriter
+        // Create the writer
+        var writer = new BarcodeWriter
+        {
+            Format = BarcodeFormat.CODE_128,
+            Options = new EncodingOptions
             {
-                Format = BarcodeFormat.CODE_128,
-                Options = new EncodingOptions
-                {
-                    Height = 100,
-                    Width = 300,
-                    Margin = 5
-                }
-            };
+                Width = 300,
+                Height = 100,
+                Margin = 5
+            }
+        };
 
-            BarcodeImage = write.Write(Code);
-            return BarcodeImage;
-        }
+        // Generate the bitmap
+        instance.BarcodeImage = writer.Write(instance.Code);
+
+        return instance;
     }
 }

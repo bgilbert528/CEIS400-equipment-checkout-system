@@ -10,7 +10,7 @@ namespace CEIS400_ECS
     public class Admin : Employee
     {
         public Admin(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt)
-            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Admin)
+            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.Admin, Roles.None)
         {
             
         }
@@ -23,15 +23,14 @@ namespace CEIS400_ECS
             }
         }
 
-        public Employee CreateUserAccount(string empID, string name, string email, string phone, EmpStatus status, string title, Roles role)
+        public Employee CreateUserAccount(string empID, string name, string email, string phone, EmpStatus status, string title, Roles role, Roles secondRole)
         {
             isAdmin();
 
             string defaultPassword = "Change123";
-            string salt;
-            string hashedPassword = PasswordControl.HashPassword(defaultPassword, out salt);
+            string hashedPassword = PasswordControl.HashPassword(defaultPassword, out string salt);
 
-            Employee newEmp = new Employee(empID, name, email, phone, status, title, hashedPassword, salt, role);
+            Employee newEmp = new Employee(empID, name, email, phone, status, title, hashedPassword, salt, role, secondRole);
 
             return newEmp;
         }

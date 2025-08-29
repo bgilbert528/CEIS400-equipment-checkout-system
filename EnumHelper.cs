@@ -18,58 +18,46 @@ namespace CEIS400_ECS
 {
     public static class EnumHelper
     {
-        // Get a list of (Value, Description) pairs from an enum type
-        public static List<EnumItem<T>> GetEnumList<T>() where T : Enum
+        // Get a list of EnumItem<T> from an enum type
+        public static List<EnumItem<T>> GetEnumItems<T>() where T : Enum
         {
-            return Enum.GetValues(typeof(T))
-                .Cast<T>()
-                .Select(e => new EnumItem<T>(e, GetDescription(e)))
-                .ToList();
+            var type = typeof(T);
+            var list = new List<EnumItem<T>>();
+
+            foreach (var value in Enum.GetValues(type).Cast<T>())
+            {
+                string description = value.ToString();
+                var memInfo = type.GetMember(value.ToString());
+                var attrs = memInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+                if (attrs.Length > 0)
+                {
+                    description = ((DescriptionAttribute)attrs[0]).Description;
+                }
+
+                list.Add(new EnumItem<T>
+                {
+                    Value = value,
+                    Description = description
+                });
+            }
+
+            return list;
         }
 
-        // Get the description of an enum value, or the name it no description
-        public static string GetDescription(Enum value)
-        {
-            var fi = value.GetType().GetField(value.ToString());
-            var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
-            return (attributes.Length > 0) ? attributes[0].Description : value.ToString();
-        }
-
-        public static List<KeyValuePair<string, T>> GetEnumDescriptions<T>() where T : Enum
-        {
-            return Enum.GetValues(typeof(T))
-                       .Cast<T>()
-                       .Select(value =>
-                       {
-                           string description = value.ToString();
-                           FieldInfo field = typeof(T).GetField(value.ToString());
-                           DescriptionAttribute attr = field?.GetCustomAttribute<DescriptionAttribute>();
-                           if (attr != null)
-                               description = attr.Description;
-
-                           return new KeyValuePair<string, T>(description, value);
-                       })
-                       .ToList();
-        }
-
+        // Bind enum to ComboBox using Description as display
         public static void BindToComboBox<T>(ComboBox comboBox) where T : Enum
         {
-            comboBox.DataSource = GetEnumList<T>();
-            comboBox.DisplayMember = "Deascription";
+            comboBox.DataSource = GetEnumItems<T>();
+            comboBox.DisplayMember = "Description";  // fixed typo
             comboBox.ValueMember = "Value";
         }
     }
 
     public class EnumItem<T>
     {
-        public T Value { get; }
-        public string Description { get; }
-
-        public EnumItem(T value, string description)
-        {
-            Value = value;
-            Description = description;
-        }
+        public T Value { get; set; }
+        public string Description { get; set; }
 
         public override string ToString() => Description;
     }

@@ -4,58 +4,84 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CEIS400_ECS
 {
     public class DeptStaff : Employee
     {
         public DeptStaff(string empID, string name, string email, string phone, EmpStatus status, string title, string passwordHash, string passwordSalt)
-            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.DeptStaff)
+            : base(empID, name, email, phone, status, title, passwordHash, passwordSalt, Roles.DeptStaff, Roles.None)
         {
 
         }
 
-        public void CheckInEquip(ITrackable source, string recordID, Customer customer)
+        public static void CheckInEquip(ITrackable source, string recordID, Customer customer, Employee user)
         {
-            if (Role == Roles.DeptStaff || SecondRole.HasValue && SecondRole == Roles.DeptStaff)
+            // Role check for DeptStaff
+            if (user.Role == Roles.DeptStaff || (user.SecondRole.HasValue && user.SecondRole == Roles.DeptStaff))
             {
-                var records = source.CheckoutRecords;
-                CheckoutRecord recordToClose = null;
-                recordToClose = records.FirstOrDefault(r => r.RecordID == recordID);
-                int index = source.CheckoutRecords.IndexOf(recordToClose);
-                source.CheckIn(ref records, index, customer);
+                // find the record that matches
+                var recordToClose = source.CheckoutRecords.FirstOrDefault(r => r.RecordID == recordID);
+
+                if (recordToClose == null)
+                {
+                    MessageBox.Show("Error", "Checkout record not found.", MessageBoxButtons.OK);
+                    return;
+                }
+
+                // If it matches close it
+                source.CheckIn(recordToClose, customer); 
                 MessageBox.Show("Success", "Check in successful.", MessageBoxButtons.OK);
             }
-            // Add that equip back into the system
         }
-
-        public void CheckOutEquip(ITrackable source, Customer customer)
+        public static void CheckOutEquip(ITrackable source, Customer customer, Employee user)
         {
-            // Checks for DeptStaff role
-            if (!(Role == Roles.DeptStaff || SecondRole.HasValue && SecondRole == Roles.DeptStaff))
+            // Ensure the user has DeptStaff role
+            if (!(user.Role == Roles.DeptStaff || (user.SecondRole.HasValue && user.SecondRole == Roles.DeptStaff)))
             {
-                // Checks if customer is Active to checkout
-                if (customer.Status != EmpStatus.Active)
-                {
-                    string msg = customer.Status == EmpStatus.Hold ? "Account on hold. Please see Supervisor for details" : "Acount removed";
-                    MessageBox.Show("Denied", msg);
-                    return;
-                }
-
-                // Checks if tool requires Cert
-                bool requiresCert = (source is Vehicle v && v.CertRequired) || (source is SpecialTool st && st.CertRequired);
-
-                // Checks if customer has required Cert
-                if (requiresCert && !customer.IsCertified(source))
-                {
-                    MessageBox.Show("Denied", "Not certified for checkout", MessageBoxButtons.OK);
-                    return;
-                }
-
-                // If Everything is good, then check out
-                source.CheckOut(customer);
-                MessageBox.Show("Success", "Check out successful.", MessageBoxButtons.OK);
+                MessageBox.Show("Denied", "User is not authorized to check out equipment", MessageBoxButtons.OK);
+                return;
             }
+
+            // Checks if customer is Active to checkout
+            if (customer.Status != EmpStatus.Active)
+            {
+                string msg = customer.Status == EmpStatus.Hold
+                    ? "Account on hold. Please see Supervisor for details"
+                    : "Account removed";
+                MessageBox.Show(msg, "Denied");
+                return;
+            }
+
+            // Checks if tool requires Cert
+            bool requiresCert = (source is Vehicle v && v.CertRequired) ||
+                                (source is SpecialTool st && st.CertRequired);
+
+            // Checks if customer has required Cert
+            if (requiresCert && !customer.IsCertified(source))
+            {
+                MessageBox.Show("Not certified for checkout", "Denied", MessageBoxButtons.OK);
+                return;
+            }
+
+            // If Everything is good, then check out
+            switch (source)
+            {
+                case BasicTools bt:
+                    bt.CheckOut(customer);
+                    break;
+
+                case SpecialTool s:
+                    s.CheckOut(customer);
+                    break;
+
+                case Vehicle vt:
+                    vt.CheckOut(customer);
+                    break;
+            }
+
+            MessageBox.Show("Check out successful.", "Success", MessageBoxButtons.OK);
         }
 
         public void UpdateEquip(ITrackable source, List<ITrackable> equipList)

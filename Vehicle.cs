@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CEIS400_ECS
 {
@@ -11,6 +12,7 @@ namespace CEIS400_ECS
     {
         // Attributes
         public override string Source { get { return VehicleID; } set { VehicleID = value; } }
+        public string Name => $"{Make} {Model} / {Year}"; // For our ListBox and other places to display a Name
 
         protected string _vehicleID;
         protected string _make;
@@ -62,12 +64,12 @@ namespace CEIS400_ECS
         // -- Class Specific --
         public override string ToString()
         {
-            return "temp text";
+            return $"{Name}"; // Returns "Make Model / Year" string
         }
 
         // -- Interface methods -- 
 
-        public override void CheckIn(ref BindingList<CheckoutRecord> records, int index, Customer customer)
+        public override void CheckIn(CheckoutRecord record, Customer customer)
         {
             // Sets item status to out and adds DateTime to InDate
             // removes current OutDate value
@@ -76,7 +78,7 @@ namespace CEIS400_ECS
             Status = InvStatus.In;
             OutDate = null;
 
-            CheckoutRecord updateRecord = records[index];
+            CheckoutRecord updateRecord = record;
 
             updateRecord.DateIn = Convert.ToDateTime(InDate);
 

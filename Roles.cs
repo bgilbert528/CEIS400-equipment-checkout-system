@@ -11,6 +11,7 @@ namespace CEIS400_ECS
         Admin,
         Supervisor,
         DeptStaff,
-        Customer
+        Customer,
+        None
     }
 }
